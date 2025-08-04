@@ -194,6 +194,10 @@ export const LikedSongsPage: React.FC = () => {
             onSeek={seekTo}
             onVolumeChange={setVolume}
             onSleepTimerComplete={pause}
+            onRewind={() => {
+              const rewindTime = Math.max(0, playerState.currentTime - 10);
+              seekTo(rewindTime);
+            }}
           />
         </div>
       )}
