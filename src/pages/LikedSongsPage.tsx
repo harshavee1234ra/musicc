@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, ArrowLeft, Music } from 'lucide-react';
 import { TrackList } from '../components/TrackList';
-import { PlayerControls } from '../components/PlayerControls';
+import PlayerControls from '../components/PlayerControls';
 import { VideoPlayer } from '../components/VideoPlayer';
 import { PlaylistModal } from '../components/PlaylistModal';
 import { useLocalStorage } from '../hooks/useLocalStorage';

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Music, Heart, LogOut } from 'lucide-react';
 import { SearchBar } from '../components/SearchBar';
 import { TrackList } from '../components/TrackList';
-import { PlayerControls } from '../components/PlayerControls';
+import PlayerControls from '../components/PlayerControls';
 import { VideoPlayer } from '../components/VideoPlayer';
 import { PlaylistModal } from '../components/PlaylistModal';
 import { SynestheticBackground } from '../components/SynestheticBackground';
