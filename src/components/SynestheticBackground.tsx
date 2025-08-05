@@ -20,6 +20,21 @@ export const SynestheticBackground: React.FC<SynestheticBackgroundProps> = ({
     accent: '#2B2D42',
   });
 
+  // Helper function to add alpha to color strings
+  const addAlphaToColor = (color: string, alpha: number): string => {
+    // If it's an HSL color, convert to HSLA
+    if (color.startsWith('hsl(')) {
+      return color.replace('hsl(', 'hsla(').replace(')', `, ${alpha})`);
+    }
+    // If it's a hex color, append alpha as hex
+    if (color.startsWith('#')) {
+      const alphaHex = Math.round(alpha * 255).toString(16).padStart(2, '0');
+      return color + alphaHex;
+    }
+    // For other formats, assume it can handle alpha directly
+    return color + Math.round(alpha * 255).toString(16).padStart(2, '0');
+  };
+
   // Extract colors from track metadata
   useEffect(() => {
     if (!currentTrack) return;
@@ -141,7 +156,7 @@ export const SynestheticBackground: React.FC<SynestheticBackgroundProps> = ({
     };
 
     const animate = () => {
-      ctx.fillStyle = `${colors.accent}15`;
+      ctx.fillStyle = addAlphaToColor(colors.accent, 0.08);
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       time += 0.016;
@@ -185,7 +200,7 @@ export const SynestheticBackground: React.FC<SynestheticBackgroundProps> = ({
 
         // Draw waveform
         ctx.beginPath();
-        ctx.strokeStyle = colors.primary + '80';
+        ctx.strokeStyle = addAlphaToColor(colors.primary, 0.5);
         ctx.lineWidth = 2;
         
         for (let i = 0; i < audioData.length; i++) {
@@ -208,8 +223,8 @@ export const SynestheticBackground: React.FC<SynestheticBackgroundProps> = ({
           const radius = 100 + i * 50 + Math.sin(time + i) * 20;
           const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
           
-          gradient.addColorStop(0, colors.primary + '20');
-          gradient.addColorStop(0.5, colors.secondary + '10');
+          gradient.addColorStop(0, addAlphaToColor(colors.primary, 0.12));
+          gradient.addColorStop(0.5, addAlphaToColor(colors.secondary, 0.06));
           gradient.addColorStop(1, 'transparent');
           
           ctx.fillStyle = gradient;
@@ -259,7 +274,7 @@ export const SynestheticBackground: React.FC<SynestheticBackgroundProps> = ({
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-0"
       style={{ 
-        background: `linear-gradient(135deg, ${colors.accent}40, ${colors.primary}20, ${colors.secondary}20)`,
+        background: `linear-gradient(135deg, ${addAlphaToColor(colors.accent, 0.25)}, ${addAlphaToColor(colors.primary, 0.12)}, ${addAlphaToColor(colors.secondary, 0.12)})`,
       }}
     />
   );
