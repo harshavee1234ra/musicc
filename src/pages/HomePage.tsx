@@ -6,6 +6,7 @@ import PlayerControls from '../components/PlayerControls';
 import { VideoPlayer } from '../components/VideoPlayer';
 import { PlaylistModal } from '../components/PlaylistModal';
 import { SynestheticBackground } from '../components/SynestheticBackground';
+import { WaveformVisualizer } from '../components/WaveformVisualizer';
 import { useYouTubePlayer } from '../hooks/useYouTubePlayer';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useAIAutoplay } from '../hooks/useAIAutoplay';
@@ -290,6 +291,18 @@ export const HomePage: React.FC = () => {
               <h2 className="text-lg md:text-xl font-semibold text-white mb-6">My Playlists</h2>
               {playlists.length === 0 ? (
                 <div className="text-center py-12">
+                {/* Enhanced Waveform Visualizer */}
+                <div className="mb-6">
+                  <WaveformVisualizer
+                    currentTrack={playerState.currentTrack}
+                    isPlaying={playerState.isPlaying}
+                    audioData={audioData}
+                    height={120}
+                    showTitle={false}
+                    className="mb-4"
+                  />
+                </div>
+                
                   <Music className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-400 mb-4">No playlists yet</p>
                   <button

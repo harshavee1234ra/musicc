@@ -154,16 +154,18 @@ export default function PlayerControls({
   return (
     <div className="bg-[#2B2D42]/95 backdrop-blur-sm border-t border-white/10 p-4">
       <div className="max-w-6xl mx-auto">
-        {/* Waveform Scrubber */}
-        <div className="mb-4">
-          <WaveformScrubber
-            currentTime={currentTime}
-            duration={duration}
-            onSeek={onSeek}
-            audioData={audioData}
-            isPlaying={isPlaying}
-          />
-        </div>
+          {/* Central Waveform Visualizer */}
+          <div className="mb-4 flex justify-center">
+            <div className="w-full max-w-md">
+              <WaveformScrubber
+                currentTime={currentTime}
+                duration={duration}
+                onSeek={onSeek}
+                audioData={audioData}
+                isPlaying={isPlaying}
+              />
+            </div>
+          </div>
 
         {/* Progress Bar */}
         <div className="mb-4">
