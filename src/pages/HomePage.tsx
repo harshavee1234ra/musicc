@@ -136,7 +136,22 @@ export const HomePage: React.FC = () => {
   };
 
   const handleTrackSelect = (index: number) => {
-    playTrack(index);
+    if (searchResults.length > 0) {
+      // Make sure we're using the correct track from search results
+      const selectedTrack = searchResults[index];
+      if (selectedTrack) {
+        // Update queue to match current search results
+        setQueue(searchResults, index);
+        // Play the selected track
+        playTrack(index);
+      }
+    } else if (currentView === 'liked' && likedSongs.length > 0) {
+      const selectedTrack = likedSongs[index];
+      if (selectedTrack) {
+        setQueue(likedSongs, index);
+        playTrack(index);
+      }
+    }
   };
 
   const toggleVideoView = () => {
