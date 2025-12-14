@@ -1,6 +1,6 @@
 import { YouTubeVideo, YouTubeSearchResponse, YouTubeVideoDetailsResponse } from '../types/youtube';
 
-const API_KEY = 'AIzaSyAxt_2GoNXOu_hpW9bpWnp7V9BKWEtYLQY';
+const API_KEY = 'AIzaSyDWurcqeCKXFIbpmnJd29Y_pPXBUMD9yhc';
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
 
 const extractMusicDirector = (title: string, channelTitle: string): string => {
