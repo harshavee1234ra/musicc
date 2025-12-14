@@ -162,6 +162,7 @@ export default function PlayerControls({
                 duration={duration}
                 onSeek={onSeek}
                 audioData={audioData}
+                audioData={audioData}
                 isPlaying={isPlaying}
               />
             </div>

@@ -58,7 +58,7 @@ export const PlaylistModal: React.FC<PlaylistModalProps> = ({
     }
   };
 
-  const handleAddToPlaylist = async (playlistId: string) => {
+  const handleAddToPlaylist = (playlistId: string) => {
     if (!selectedTrack) return;
     
     try {

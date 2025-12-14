@@ -318,10 +318,6 @@ export const PlaylistsPage: React.FC = () => {
                 </div>
               </div>
             ))}
-            onRewind={() => {
-              const rewindTime = Math.max(0, playerState.currentTime - 10);
-              seekTo(rewindTime);
-            }}
           </div>
         )}
       </div>

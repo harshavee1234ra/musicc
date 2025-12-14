@@ -378,10 +378,6 @@ export const WaveformVisualizer: React.FC<WaveformVisualizerProps> = ({
     
     return { ...baseColors, ...adjustments[audioMood] };
   };
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
