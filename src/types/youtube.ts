@@ -9,6 +9,7 @@ export interface YouTubeVideo {
   };
   duration: string;
   publishedAt: string;
+  description?: string;
 }
 
 export interface YouTubeSearchResponse {
