@@ -1,3 +1,5 @@
+import { Client } from 'lrclib-api';
+
 export interface LyricsResponse {
   id: number;
   name: string;
@@ -11,53 +13,91 @@ export interface LyricsResponse {
 }
 
 export interface LyricsLine {
-  time: number;
+  text: string;
+  startTime: number; // in milliseconds
+}
+
+export interface UnsyncedLyricsLine {
   text: string;
 }
 
 export class LyricsApiService {
-  private baseUrl = 'https://lrclib.net/api';
+  private client: Client;
+
+  constructor() {
+    this.client = new Client();
+  }
 
   async searchLyrics(artist: string, track: string, album?: string, duration?: number): Promise<LyricsResponse | null> {
     try {
-      const params = new URLSearchParams({
-        artist_name: artist,
-        track_name: track,
-      });
+      const query = {
+        artist_name: this.cleanArtistName(artist),
+        track_name: this.cleanTrackName(track),
+        ...(album && { album_name: album }),
+        ...(duration && { duration: Math.round(duration) })
+      };
 
-      if (album) {
-        params.append('album_name', album);
-      }
-
-      if (duration) {
-        params.append('duration', Math.round(duration).toString());
-      }
-
-      const response = await fetch(`${this.baseUrl}/search?${params}`);
+      const metadata = await this.client.findLyrics(query);
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!metadata) {
+        return null;
       }
 
-      const results = await response.json();
-      
-      // Return the first result if available
-      return results.length > 0 ? results[0] : null;
+      return {
+        id: metadata.id,
+        name: metadata.name,
+        trackName: metadata.trackName,
+        artistName: metadata.artistName,
+        albumName: metadata.albumName,
+        duration: metadata.duration,
+        instrumental: metadata.instrumental,
+        plainLyrics: metadata.plainLyrics || '',
+        syncedLyrics: metadata.syncedLyrics || ''
+      };
     } catch (error) {
       console.error('Error fetching lyrics:', error);
       return null;
     }
   }
 
+  async getUnsyncedLyrics(artist: string, track: string, album?: string): Promise<UnsyncedLyricsLine[] | null> {
+    try {
+      const query = {
+        artist_name: this.cleanArtistName(artist),
+        track_name: this.cleanTrackName(track),
+        ...(album && { album_name: album })
+      };
+
+      const unsynced = await this.client.getUnsynced(query);
+      return unsynced || null;
+    } catch (error) {
+      console.error('Error fetching unsynced lyrics:', error);
+      return null;
+    }
+  }
+
+  async getSyncedLyrics(artist: string, track: string, album?: string): Promise<LyricsLine[] | null> {
+    try {
+      const query = {
+        artist_name: this.cleanArtistName(artist),
+        track_name: this.cleanTrackName(track),
+        ...(album && { album_name: album })
+      };
+
+      const synced = await this.client.getSynced(query);
+      return synced || null;
+    } catch (error) {
+      console.error('Error fetching synced lyrics:', error);
+      return null;
+    }
+  }
+
   async getLyricsById(id: number): Promise<LyricsResponse | null> {
     try {
-      const response = await fetch(`${this.baseUrl}/get/${id}`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      // The lrclib-api doesn't have a direct getById method, so we'll use the search
+      // This is a limitation of the current API wrapper
+      console.warn('getLyricsById not directly supported by lrclib-api');
+      return null;
     } catch (error) {
       console.error('Error fetching lyrics by ID:', error);
       return null;
@@ -78,20 +118,22 @@ export class LyricsApiService {
         const centiseconds = parseInt(match[3]);
         const text = match[4].trim();
         
-        const time = minutes * 60 + seconds + centiseconds / 100;
+        const startTime = (minutes * 60 + seconds) * 1000 + centiseconds * 10; // Convert to milliseconds
         
         if (text) {
-          lines.push({ time, text });
+          lines.push({ text, startTime });
         }
       }
     }
 
-    return lines.sort((a, b) => a.time - b.time);
+    return lines.sort((a, b) => a.startTime - b.startTime);
   }
 
   getCurrentLyricIndex(lyrics: LyricsLine[], currentTime: number): number {
+    const currentTimeMs = currentTime * 1000; // Convert seconds to milliseconds
+    
     for (let i = lyrics.length - 1; i >= 0; i--) {
-      if (currentTime >= lyrics[i].time) {
+      if (currentTimeMs >= lyrics[i].startTime) {
         return i;
       }
     }
@@ -126,6 +168,39 @@ export class LyricsApiService {
       .replace(/\s*4K$/gi, '')
       .replace(/\s*-\s*YouTube$/gi, '')
       .trim();
+  }
+
+  // Helper method to convert unsynced lyrics to display format
+  formatUnsyncedLyrics(unsyncedLyrics: UnsyncedLyricsLine[]): string {
+    return unsyncedLyrics.map(line => line.text).join('\n');
+  }
+
+  // Helper method to get lyrics in multiple formats
+  async getAllLyricsFormats(artist: string, track: string, album?: string) {
+    try {
+      const [metadata, unsynced, synced] = await Promise.all([
+        this.searchLyrics(artist, track, album),
+        this.getUnsyncedLyrics(artist, track, album),
+        this.getSyncedLyrics(artist, track, album)
+      ]);
+
+      return {
+        metadata,
+        unsynced,
+        synced,
+        hasLyrics: !!(metadata && !metadata.instrumental),
+        isInstrumental: metadata?.instrumental || false
+      };
+    } catch (error) {
+      console.error('Error fetching all lyrics formats:', error);
+      return {
+        metadata: null,
+        unsynced: null,
+        synced: null,
+        hasLyrics: false,
+        isInstrumental: false
+      };
+    }
   }
 }
 

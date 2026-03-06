@@ -42,14 +42,20 @@ export const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
         const cleanArtist = lyricsApi.cleanArtistName(currentTrack.channelTitle);
         const cleanTrack = lyricsApi.cleanTrackName(currentTrack.title);
 
-        const result = await lyricsApi.searchLyrics(cleanArtist, cleanTrack);
+        // Try to get all formats of lyrics
+        const lyricsData = await lyricsApi.getAllLyricsFormats(cleanArtist, cleanTrack);
 
-        if (result) {
-          setLyrics(result);
-          if (result.syncedLyrics) {
-            const parsed = lyricsApi.parseSyncedLyrics(result.syncedLyrics);
-            setSyncedLyrics(parsed);
+        if (lyricsData.metadata) {
+          setLyrics(lyricsData.metadata);
+          
+          if (lyricsData.synced && lyricsData.synced.length > 0) {
+            setSyncedLyrics(lyricsData.synced);
             setShowSynced(true);
+          } else if (lyricsData.metadata.syncedLyrics) {
+            // Fallback to parsing synced lyrics from metadata
+            const parsed = lyricsApi.parseSyncedLyrics(lyricsData.metadata.syncedLyrics);
+            setSyncedLyrics(parsed);
+            setShowSynced(parsed.length > 0);
           } else {
             setSyncedLyrics([]);
             setShowSynced(false);
@@ -60,6 +66,7 @@ export const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
           setSyncedLyrics([]);
         }
       } catch (err) {
+        console.error('Error fetching lyrics:', err);
         setError('Failed to fetch lyrics');
         setLyrics(null);
         setSyncedLyrics([]);
@@ -81,7 +88,7 @@ export const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
 
   // Auto-scroll to current lyric
   useEffect(() => {
-    if (currentLineRef.current && lyricsContainerRef.current && isPlaying) {
+    if (currentLineRef.current && lyricsContainerRef.current && isPlaying && currentLyricIndex >= 0) {
       const container = lyricsContainerRef.current;
       const currentLine = currentLineRef.current;
       
@@ -92,7 +99,7 @@ export const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
       const scrollTop = lineTop - containerHeight / 2 + lineHeight / 2;
       
       container.scrollTo({
-        top: scrollTop,
+        top: Math.max(0, scrollTop),
         behavior: 'smooth',
       });
     }
@@ -173,23 +180,42 @@ export const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
             ref={lyricsContainerRef}
             className="h-full overflow-y-auto p-4 space-y-2 scrollbar-hide"
           >
-            {showSynced && syncedLyrics.length > 0 ? (
+            {lyrics.instrumental ? (
+              <div className="flex items-center justify-center h-full text-gray-400">
+                <div className="text-center">
+                  <Music className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>This song is instrumental</p>
+                  <p className="text-sm opacity-75 mt-2">No lyrics available</p>
+                </div>
+              </div>
+            ) : showSynced && syncedLyrics.length > 0 ? (
               // Synced lyrics with highlighting
               syncedLyrics.map((line, index) => (
                 <div
                   key={index}
                   ref={index === currentLyricIndex ? currentLineRef : null}
-                  className={`transition-all duration-300 py-1 px-3 rounded-lg ${
+                  className={`transition-all duration-300 py-2 px-3 rounded-lg cursor-pointer ${
                     index === currentLyricIndex
-                      ? 'text-white bg-gradient-to-r from-[#FF3CAC]/20 to-[#784BA0]/20 border-l-2 border-[#FF3CAC] transform scale-105'
+                      ? 'text-white bg-gradient-to-r from-[#FF3CAC]/20 to-[#784BA0]/20 border-l-2 border-[#FF3CAC] transform scale-105 shadow-lg'
                       : index < currentLyricIndex
                       ? 'text-gray-500'
-                      : 'text-gray-300'
+                      : 'text-gray-300 hover:text-gray-200'
                   }`}
+                  onClick={() => {
+                    // Allow users to click on lyrics to seek to that time
+                    const seekTime = line.startTime / 1000; // Convert to seconds
+                    // You can emit an event or call a callback here to seek the player
+                    console.log('Seek to:', seekTime);
+                  }}
                 >
                   <p className="text-sm md:text-base leading-relaxed">
                     {line.text}
                   </p>
+                  {index === currentLyricIndex && (
+                    <div className="text-xs text-[#FF3CAC] mt-1 opacity-75">
+                      {Math.floor(line.startTime / 60000)}:{String(Math.floor((line.startTime % 60000) / 1000)).padStart(2, '0')}
+                    </div>
+                  )}
                 </div>
               ))
             ) : lyrics.plainLyrics ? (
@@ -201,7 +227,8 @@ export const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
               <div className="flex items-center justify-center h-full text-gray-400">
                 <div className="text-center">
                   <Music className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>This song is instrumental</p>
+                  <p>No lyrics available</p>
+                  <p className="text-sm opacity-75 mt-2">This track may be instrumental</p>
                 </div>
               </div>
             )}
@@ -213,10 +240,18 @@ export const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
       {lyrics && (
         <div className="p-3 border-t border-white/10 text-xs text-gray-500">
           <div className="flex items-center justify-between">
-            <span>
-              {lyrics.instrumental ? 'Instrumental' : 
-               showSynced && syncedLyrics.length > 0 ? 'Synced lyrics' : 'Plain lyrics'}
-            </span>
+            <div className="flex items-center space-x-4">
+              <span>
+                {lyrics.instrumental ? 'Instrumental' : 
+                 showSynced && syncedLyrics.length > 0 ? 'Synced lyrics' : 'Plain lyrics'}
+              </span>
+              {lyrics.albumName && (
+                <span>Album: {lyrics.albumName}</span>
+              )}
+              {lyrics.duration && (
+                <span>Duration: {Math.floor(lyrics.duration / 60)}:{String(lyrics.duration % 60).padStart(2, '0')}</span>
+              )}
+            </div>
             <span>Powered by LrcLib</span>
           </div>
         </div>
