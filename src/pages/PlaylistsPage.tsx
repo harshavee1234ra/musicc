@@ -5,6 +5,7 @@ import { TrackList } from '../components/TrackList';
 import PlayerControls from '../components/PlayerControls';
 import { VideoPlayer } from '../components/VideoPlayer';
 import { PlaylistModal } from '../components/PlaylistModal';
+import { LyricsDisplay } from '../components/LyricsDisplay';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useYouTubePlayer } from '../hooks/useYouTubePlayer';
 import { YouTubeVideo } from '../types/youtube';
@@ -17,6 +18,7 @@ export const PlaylistsPage: React.FC = () => {
   const [selectedTrackForPlaylist, setSelectedTrackForPlaylist] = React.useState<YouTubeVideo | null>(null);
   const [selectedPlaylist, setSelectedPlaylist] = React.useState<Playlist | null>(null);
   const [showVideo, setShowVideo] = React.useState(false);
+  const [showLyrics, setShowLyrics] = React.useState(false);
 
   const {
     playerState,
@@ -183,21 +185,44 @@ export const PlaylistsPage: React.FC = () => {
               <div className="order-1 lg:order-2">
                 {playerState.currentTrack && (
                   <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4 md:p-6 sticky top-4">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                       <h2 className="text-lg md:text-xl font-semibold text-white">Now Playing</h2>
-                      <button
-                        onClick={toggleVideoView}
-                        className="px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-[#FF3CAC] to-[#784BA0] text-white rounded-lg text-xs md:text-sm font-medium hover:from-[#FF3CAC]/80 hover:to-[#784BA0]/80 transition-all duration-200"
-                      >
-                        {showVideo ? 'Hide Video' : 'Show Video'}
-                      </button>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => setShowLyrics(!showLyrics)}
+                          className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-all duration-200 ${
+                            showLyrics
+                              ? 'bg-[#FF3CAC] text-white'
+                              : 'bg-white/10 text-gray-300 hover:text-white hover:bg-white/20'
+                          }`}
+                        >
+                          {showLyrics ? 'Hide Lyrics' : 'Show Lyrics'}
+                        </button>
+                        <button
+                          onClick={toggleVideoView}
+                          className="px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-[#FF3CAC] to-[#784BA0] text-white rounded-lg text-xs md:text-sm font-medium hover:from-[#FF3CAC]/80 hover:to-[#784BA0]/80 transition-all duration-200"
+                        >
+                          {showVideo ? 'Hide Video' : 'Show Video'}
+                        </button>
+                      </div>
                     </div>
                     
-                    <VideoPlayer
-                      currentTrack={playerState.currentTrack}
-                      showVideo={showVideo}
-                      isPlaying={playerState.isPlaying}
-                    />
+                    {showLyrics ? (
+                      <div className="h-96">
+                        <LyricsDisplay
+                          currentTrack={playerState.currentTrack}
+                          currentTime={playerState.currentTime}
+                          isPlaying={playerState.isPlaying}
+                          onClose={() => setShowLyrics(false)}
+                        />
+                      </div>
+                    ) : (
+                      <VideoPlayer
+                        currentTrack={playerState.currentTrack}
+                        showVideo={showVideo}
+                        isPlaying={playerState.isPlaying}
+                      />
+                    )}
                   </div>
                 )}
               </div>
