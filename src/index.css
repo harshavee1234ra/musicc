@@ -11,3 +11,24 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Marquee animation for overflowing text */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
+
+.marquee {
+  animation: marquee 10s linear infinite;
+}
+
+.marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 1024px) {
+  .mobile-hidden {
+    display: none !important;
+  }
+}
