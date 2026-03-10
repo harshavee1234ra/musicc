@@ -7,7 +7,7 @@ import { VideoPlayer } from '../components/VideoPlayer';
 import { PlaylistModal } from '../components/PlaylistModal';
 import { SynestheticBackground } from '../components/SynestheticBackground';
 import { WaveformVisualizer } from '../components/WaveformVisualizer';
-import { LyricsDisplay } from '../components/LyricsDisplay';
+import { LyricsPanel } from '../components/LyricsPanel';
 import { useYouTubePlayer } from '../hooks/useYouTubePlayer';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useAIAutoplay } from '../hooks/useAIAutoplay';
@@ -393,7 +393,7 @@ export const HomePage: React.FC = () => {
               )}
             </div>
 
-            <div className="order-1 lg:order-2">
+            <div className="order-1 lg:order-2 hidden lg:block">
               {playerState.currentTrack && (
                 <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4 md:p-6 sticky top-4">
                   <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -420,11 +420,11 @@ export const HomePage: React.FC = () => {
                   
                   {showLyrics ? (
                     <div className="h-96">
-                      <LyricsDisplay
+                      <LyricsPanel
                         currentTrack={playerState.currentTrack}
                         currentTime={playerState.currentTime}
                         isPlaying={playerState.isPlaying}
-                        onClose={() => setShowLyrics(false)}
+                        onSeek={seekTo}
                       />
                     </div>
                   ) : (
@@ -469,6 +469,8 @@ export const HomePage: React.FC = () => {
             onSleepTimerComplete={pause}
             onRewind={handleRewind}
             audioData={audioData}
+            onToggleLike={handleLikeToggle}
+            isTrackLiked={isTrackLiked}
           />
         </div>
       )}
